@@ -12,13 +12,6 @@
     </style>
   </head>
   <body>
-    <div id="lbl_left" class="lbl">
-      anisotropy: <span class="c" id="val_left"></span><br />
-    </div>
-
-    <div id="lbl_right" class="lbl">
-      anisotropy: <span class="c" id="val_right"></span><br />
-    </div>
     <script src="three.js"></script>
     <script src="OBJloader.js"></script>
     <script src="mtl.js"></script>
@@ -44,38 +37,77 @@
       var windowHalfX = window.innerWidth / 2;
       var windowHalfY = window.innerHeight / 2;
 
-  var geometry = new THREE.SphereBufferGeometry( 5, 32, 32 );
-  var material = new THREE.MeshLambertMaterial({
-    color: 0xffffff,
-    map: new THREE.TextureLoader().load("wood.png"),
-});
-var pgeometry = new THREE.PlaneGeometry( 50, 50 );
-var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide, wireframe:true} );
+      //particls
+      var particles;
+      var PARTICLE_SIZE = 20;
+      var vertices = new THREE.BoxGeometry( 500, 500, 500, 16, 16, 16 ).vertices;
+				var positions = new Float32Array( vertices.length * 3 );
+				// var colors = new Float32Array( vertices.length * 3 );
+				var sizes = new Float32Array( vertices.length );
+				var vertex;
+				var color = new THREE.Color();
+				for ( var i = 0, l = vertices.length; i < l; i ++ ) {
+					vertex = vertices[ i ];
+					vertex.toArray( positions, i * 3 );
+					// color.setHSL( 0.01 + 0.1 * ( i / l ), 1.0, 0.5 );
+					// color.toArray( colors, i * 0 );
+					sizes[ i ] = PARTICLE_SIZE * 1.75;
+				}
+				var sgeometry = new THREE.BufferGeometry();
+				sgeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+				// geometry.addAttribute( 'customColor', new THREE.BufferAttribute( colors, 3 ) );
+				sgeometry.addAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
+				//
+				var smaterial = new THREE.ShaderMaterial( {
+					uniforms: {
+						 color: 0xffffff
+					},
+					// alphaTest: 0.9
+				} );
+				//
+				particles = new THREE.Points( sgeometry, smaterial );
+				scene.add( particles );
 
-var plane = new THREE.Mesh( pgeometry, material );
-plane.rotation.x += Math.PI /2;
-plane.position = (0,0,0);
-plane.y =0;
+      var geometry = new THREE.SphereBufferGeometry(5, 32, 32);
+      var material = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        map: new THREE.TextureLoader().load("moon.jpg")
+      });
+      geometry.translate(0,20,0)
+      var pgeometry = new THREE.PlaneGeometry(500, 500);
+      pgeometry.translate(0,0,50)
+      var pmaterial = new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide,
+        map: new THREE.TextureLoader().load("grass.jpg")
+      });
 
-scene.add( plane );
-var sphere = new THREE.Mesh( geometry, material );
-scene.add( sphere );
+      var plane = new THREE.Mesh(pgeometry, pmaterial);
+      plane.rotation.x += Math.PI / 2;
+    
+
+      scene.add(plane);
+      var sphere = new THREE.Mesh(geometry, material);
+
+      scene.add(sphere);
 
       var animate = function() {
         requestAnimationFrame(animate);
 
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.01;
+        sphere.rotation.x += 0.001;
+        sphere.rotation.y += 0.01;
 
         renderer.render(scene, camera);
       };
+
       document.addEventListener("mousemove", onDocumentMouseMove, false);
       const objLoader = new THREE.OBJLoader();
       let cube = null;
 
       var directionalLight = new THREE.DirectionalLight(0xffeedd);
-      directionalLight.position.set(0, 0, 1).normalize();
+      directionalLight.position.set(0, 1, 1).normalize();
       scene.add(directionalLight);
+
       var light1 = new THREE.PointLight(0xffffff, 0.7);
       scene.add(light1);
 
@@ -99,31 +131,27 @@ scene.add( sphere );
         });
       });
 
-
-
-
-
       // var floorMat;
       // floorMat = new THREE.MeshStandardMaterial( {
-			// 		roughness: 0.8,
-			// 		color: 0xffffff,
-			// 		metalness: 0.2,
-			// 		bumpScale: 0.0005
+      // 		roughness: 0.8,
+      // 		color: 0xffffff,
+      // 		metalness: 0.2,
+      // 		bumpScale: 0.0005
       //   } );
-  //       var textureLoader = new THREE.TextureLoader();
-	// 			textureLoader.load( "wood.jpeg", function ( map ) {
-	// 				map.wrapS = THREE.RepeatWrapping;
-	// 				map.wrapT = THREE.RepeatWrapping;
-	// 				map.anisotropy = 4;
-	// 				map.repeat.set( 10, 24 );
-	// 				floorMat.map = map;
-	// 				floorMat.needsUpdate = true;
-	// } );
+      //       var textureLoader = new THREE.TextureLoader();
+      // 			textureLoader.load( "wood.jpeg", function ( map ) {
+      // 				map.wrapS = THREE.RepeatWrapping;
+      // 				map.wrapT = THREE.RepeatWrapping;
+      // 				map.anisotropy = 4;
+      // 				map.repeat.set( 10, 24 );
+      // 				floorMat.map = map;
+      // 				floorMat.needsUpdate = true;
+      // } );
       // var floorGeometry = new THREE.PlaneBufferGeometry( 0, 0,0 );
-			// 	var floorMesh = new THREE.Mesh( floorGeometry, floorMat );
-			// 	floorMesh.receiveShadow = true;
-			// 	floorMesh.rotation.x = - Math.PI / 2.0;
-			// 	scene.add( floorMesh );
+      // 	var floorMesh = new THREE.Mesh( floorGeometry, floorMat );
+      // 	floorMesh.receiveShadow = true;
+      // 	floorMesh.rotation.x = - Math.PI / 2.0;
+      // 	scene.add( floorMesh );
 
       // new Promise(resolve => {
       //   mtlLoader.setPath( "https://threejs.org/examples/models/obj/walt/" );
@@ -192,7 +220,7 @@ scene.add( sphere );
       // renderer.setClearColor(0xccccff);
       // document.body.appendChild( renderer.domElement );
 
-      // animate();
+      animate();
 
       // function animate() {
 
