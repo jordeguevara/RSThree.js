@@ -1,38 +1,211 @@
 <html>
-	<head>
-		<title>three.js</title>
-		<style>
-			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
-		</style>
-	</head>
-	<body>
-		<script src="three.js"></script>
-		<script>
-			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+  <head>
+    <title>three.js</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="lbl_left" class="lbl">
+      anisotropy: <span class="c" id="val_left"></span><br />
+    </div>
 
-			var renderer = new THREE.WebGLRenderer();
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			document.body.appendChild( renderer.domElement );
+    <div id="lbl_right" class="lbl">
+      anisotropy: <span class="c" id="val_right"></span><br />
+    </div>
+    <script src="three.js"></script>
+    <script src="OBJloader.js"></script>
+    <script src="mtl.js"></script>
+    <script>
+      var scene = new THREE.Scene();
+      scene.background = new THREE.Color("black");
+      var camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
 
-			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-			var cube = new THREE.cMesh( geometry, material );
-			scene.add( cube );
+      var mouseX = 0,
+        mouseY = 0;
 
-			camera.position.z = 5;
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
-			var animate = function () {
-				requestAnimationFrame( animate );
+      camera.position.z = 100;
 
-				cube.rotation.x += 0.01;
-				cube.rotation.y += 0.01;
+      var windowHalfX = window.innerWidth / 2;
+      var windowHalfY = window.innerHeight / 2;
 
-				renderer.render( scene, camera );
-			};
+  var geometry = new THREE.SphereBufferGeometry( 5, 32, 32 );
+  var material = new THREE.MeshLambertMaterial({
+    color: 0xffffff,
+    map: new THREE.TextureLoader().load("wood.png"),
+});
+var pgeometry = new THREE.PlaneGeometry( 50, 50 );
+var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide, wireframe:true} );
 
-			animate();
-		</script>
-	</body>
+var plane = new THREE.Mesh( pgeometry, material );
+plane.rotation.x += Math.PI /2;
+plane.position = (0,0,0);
+plane.y =0;
+
+scene.add( plane );
+var sphere = new THREE.Mesh( geometry, material );
+scene.add( sphere );
+
+      var animate = function() {
+        requestAnimationFrame(animate);
+
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+
+        renderer.render(scene, camera);
+      };
+      document.addEventListener("mousemove", onDocumentMouseMove, false);
+      const objLoader = new THREE.OBJLoader();
+      let cube = null;
+
+      var directionalLight = new THREE.DirectionalLight(0xffeedd);
+      directionalLight.position.set(0, 0, 1).normalize();
+      scene.add(directionalLight);
+      var light1 = new THREE.PointLight(0xffffff, 0.7);
+      scene.add(light1);
+
+      var texture = new THREE.TextureLoader().load("wood.png");
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(4, 4);
+
+      const mtlLoader = new THREE.MTLLoader();
+
+      mtlLoader.load("cottage.mtl", function(materials) {
+        materials.preload();
+
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+
+        objLoader.load("cottage_blender.obj", function(object) {
+          cube = object;
+          cube.position.y = -50;
+          scene.add(cube);
+        });
+      });
+
+
+
+
+
+      // var floorMat;
+      // floorMat = new THREE.MeshStandardMaterial( {
+			// 		roughness: 0.8,
+			// 		color: 0xffffff,
+			// 		metalness: 0.2,
+			// 		bumpScale: 0.0005
+      //   } );
+  //       var textureLoader = new THREE.TextureLoader();
+	// 			textureLoader.load( "wood.jpeg", function ( map ) {
+	// 				map.wrapS = THREE.RepeatWrapping;
+	// 				map.wrapT = THREE.RepeatWrapping;
+	// 				map.anisotropy = 4;
+	// 				map.repeat.set( 10, 24 );
+	// 				floorMat.map = map;
+	// 				floorMat.needsUpdate = true;
+	// } );
+      // var floorGeometry = new THREE.PlaneBufferGeometry( 0, 0,0 );
+			// 	var floorMesh = new THREE.Mesh( floorGeometry, floorMat );
+			// 	floorMesh.receiveShadow = true;
+			// 	floorMesh.rotation.x = - Math.PI / 2.0;
+			// 	scene.add( floorMesh );
+
+      // new Promise(resolve => {
+      //   mtlLoader.setPath( "https://threejs.org/examples/models/obj/walt/" );
+      //   mtlLoader.load('WaltHead.mtl', materials => {
+
+      //     resolve(materials);
+      //   });
+      // }).then(materials => {
+      //   materials.preload();
+      //   objLoader.setMaterials(materials);
+      //   objLoader.load("cottage.obj", object => {
+      //     cube = object;
+      //     scene.add(object);
+      //   });
+      // });
+      function render() {
+        camera.position.x += (mouseX - camera.position.x) * 0.05;
+        camera.position.y += (-mouseY - camera.position.y) * 0.05;
+        camera.lookAt(scene.position);
+
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+      }
+      function onDocumentMouseMove(event) {
+        mouseX = (event.clientX - windowHalfX) / 2;
+        mouseY = (event.clientY - windowHalfY) / 2;
+      }
+
+      renderer.setClearColor(0xccccff);
+      render();
+      // 	var scene = new THREE.Scene();
+
+      // var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+      // camera.position.z = 250;
+      // camera.lookAt( scene.position );
+
+      // var directionalLight = new THREE.DirectionalLight( 0xffeedd );
+      // directionalLight.position.set( 0, 0, 1 ).normalize();
+      // scene.add( directionalLight );
+
+      // // model
+      // var mesh = null;
+
+      // var mtlLoader = new THREE.MTLLoader();
+      // // mtlLoader.setPath( "https://threejs.org/examples/models/obj/walt/" );
+      // mtlLoader.load( 'cottage.mtl', function( materials ) {
+
+      //   materials.preload();
+
+      //   var objLoader = new THREE.OBJLoader();
+      //   objLoader.setMaterials( materials );
+      // //   objLoader.setPath( "https://threejs.org/examples/models/obj/walt/" );
+      //   objLoader.load( 'cottage.obj', function ( object ) {
+
+      //     mesh = object;
+      //     mesh.position.y = -50;
+      //     scene.add( mesh );
+
+      //   } );
+
+      // } );
+
+      // var renderer = new THREE.WebGLRenderer();
+      // renderer.setPixelRatio( window.devicePixelRatio );
+      // renderer.setSize( window.innerWidth, window.innerHeight );
+      // renderer.setClearColor(0xccccff);
+      // document.body.appendChild( renderer.domElement );
+
+      // animate();
+
+      // function animate() {
+
+      //   requestAnimationFrame( animate );
+
+      // 	if( mesh !== null ) {
+      //     mesh.rotation.x += 0.01;
+      //     mesh.rotation.y += 0.02;
+      //   }
+
+      //   renderer.render( scene, camera );
+
+      // }
+    </script>
+  </body>
 </html>
