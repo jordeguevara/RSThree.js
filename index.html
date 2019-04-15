@@ -40,7 +40,7 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.body.appendChild(renderer.domElement);
 
-      //particles 
+      //particles
       var particles;
       var PARTICLE_SIZE = 20;
       var vertices = new THREE.BoxGeometry(500, 500, 500, 16, 16, 16).vertices;
@@ -61,18 +61,21 @@
         "position",
         new THREE.BufferAttribute(positions, 3)
       );
-      particleGeometry.addAttribute("size", new THREE.BufferAttribute(sizes, 1));
+      particleGeometry.addAttribute(
+        "size",
+        new THREE.BufferAttribute(sizes, 1)
+      );
       //
       var particleMaterial = new THREE.ShaderMaterial({
         uniforms: {
           color: 0xffffff
         }
       });
-      
+
       particles = new THREE.Points(particleGeometry, particleMaterial);
       scene.add(particles);
 
-      //Moon 
+      //Moon
       var moonGeometry = new THREE.SphereBufferGeometry(5, 32, 32);
       var moonMaterial = new THREE.MeshLambertMaterial({
         color: 0xffffff,
@@ -82,7 +85,7 @@
       var moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
       scene.add(moon);
-      
+
       //terrain
       var terrainGeometry = new THREE.PlaneGeometry(500, 500);
       terrainGeometry.translate(0, 0, 50);
@@ -97,14 +100,32 @@
 
       scene.add(plane);
 
+      // stars
+      var starsGeometry = new THREE.Geometry();
 
-  
-      // animate 
+      for (var i = 0; i < 20000; i++) {
+        var star = new THREE.Vector3();
+        star.x = THREE.Math.randFloatSpread(1000);
+        star.y = THREE.Math.randFloatSpread(1000);
+        star.z = THREE.Math.randFloatSpread(1000);
+
+        starsGeometry.vertices.push(star);
+      }
+
+      var starsMaterial = new THREE.PointsMaterial({ color: 'lightblue' });
+
+      var starField = new THREE.Points(starsGeometry, starsMaterial);
+
+      scene.add(starField);
+
+      // animate
       var animate = function() {
         requestAnimationFrame(animate);
 
-        moon.rotation.x += 0.001;
-        moon.rotation.y += 0.01;
+        moon.rotation.y += 0.05;
+    
+
+        starField.position.y -= 0.1;
 
         renderer.render(scene, camera);
       };
@@ -118,7 +139,7 @@
       directionalLight.position.set(0, 1, 1).normalize();
       scene.add(directionalLight);
 
-      //point light 
+      //point light
       var pointLight = new THREE.PointLight(0xffffff, 0.7);
       scene.add(pointLight);
 
