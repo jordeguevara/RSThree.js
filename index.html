@@ -9,16 +9,27 @@
         width: 100%;
         height: 100%;
       }
+
+      audio {
+        position: absolute;
+      }
     </style>
   </head>
   <body>
+    <audio controls>
+      <source src="crick.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
     <script src="three.js"></script>
+    <script src="inflate.min.js"></script>
     <script src="OBJloader.js"></script>
+    <script src="FBXLoader.js"></script>
     <script src="mtl.js"></script>
     <script>
       //create Scene
       var scene = new THREE.Scene();
-      scene.background = new THREE.Color("black");
+      scene.fog = new THREE.Fog("#A9A9A9", 0.14);
+      // scene.background = new THREE.Color("black");
 
       //create Camera
       var camera = new THREE.PerspectiveCamera(
@@ -34,6 +45,9 @@
       var windowHalfX = window.innerWidth / 2;
       var windowHalfY = window.innerHeight / 2;
       camera.position.z = 100;
+      camera.position.y =200;
+      camera.position.x =100;
+      console.log(camera)
 
       //create renderer
       var renderer = new THREE.WebGLRenderer();
@@ -76,15 +90,76 @@
       scene.add(particles);
 
       //Moon
-      var moonGeometry = new THREE.SphereBufferGeometry(5, 32, 32);
+      var moonGeometry = new THREE.SphereBufferGeometry(32, 32, 32);
       var moonMaterial = new THREE.MeshLambertMaterial({
         color: 0xffffff,
         map: new THREE.TextureLoader().load("moon.jpg")
       });
-      moonGeometry.translate(0, 40, 0);
+      moonGeometry.translate(0, 150, 0);
       var moon = new THREE.Mesh(moonGeometry, moonMaterial);
 
       scene.add(moon);
+
+      // lights
+
+      var bulbMat;
+      var bulbGeometry = new THREE.SphereBufferGeometry(1, 16, 8);
+      bulbLight = new THREE.PointLight(0xffee88, 1, 100, 2);
+      bulbMat = new THREE.MeshStandardMaterial({
+        emissive: 0xffffee,
+        emissiveIntensity: 1,
+        color: 0x000000
+      });
+      // light1.add(new THREE.Mesh(bulbGeometry, bulbMat))
+      // bulbLight.add(new THREE.Mesh(bulbGeometry, bulbMat));
+      // bulbLight.position.set(0, 2, 0);
+      // bulbLight.castShadow = true;
+      // scene.add(bulbLight);	var loader = new THREE.FBXLoader();
+
+      var sphere = new THREE.SphereBufferGeometry(0.5, 16, 8);
+      var light1, light2, light3, light4, object;
+      light1 = new THREE.PointLight(0xffee88, 2, 50);
+      // light1.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: 0xffee88 } ) ) );
+      light1.add(new THREE.Mesh(bulbGeometry, bulbMat));
+      light1.power = 0;
+      light1.castShadow = true;
+      scene.add(light1);
+      light2 = new THREE.PointLight(0xffee88, 2, 50);
+      light2.add(
+        new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xffee88 }))
+      );
+      scene.add(light2);
+      light3 = new THREE.PointLight(0xffee88, 2, 50);
+      light3.add(
+        new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xffee88 }))
+      );
+      scene.add(light3);
+      light4 = new THREE.PointLight(0xffee88, 2, 50);
+      light4.add(
+        new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xffee88 }))
+      );
+      scene.add(light4);
+      var time = Date.now() * 0.0005;
+
+      // bulbLight.position.y = Math.cos(time) * 0.75 + 150.25;
+
+      var loader = new THREE.FBXLoader();
+      var car;
+      loader.load("./lambo/Lamborghini_Aventador.fbx", function(object) {
+        // mixer = new THREE.AnimationMixer(object);
+        // var action = mixer.clipAction(object.animations[0]);
+        // action.play();
+        object.traverse(function(child) {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+        car =object;
+        car.position.y -= 50;
+        // object.position.y -= 50;
+        scene.add(object);
+      });
 
       //terrain
       var terrainGeometry = new THREE.PlaneGeometry(500, 500);
@@ -100,6 +175,44 @@
 
       scene.add(plane);
 
+      //sphere for visualizer
+      // var r = 200;
+      // var i, line, material, p,
+      // 		parameters = [[ 0.25, 0xff7700, 1 ], [ 0.5, 0xff9900, 1 ], [ 0.75, 0xffaa00, 0.75 ], [ 1, 0xffaa00, 0.5 ], [ 1.25, 0x000833, 0.8 ],
+      // 				       [ 3.0, 0xaaaaaa, 0.75 ], [ 3.5, 0xffffff, 0.5 ], [ 4.5, 0xffffff, 0.25 ], [ 5.5, 0xffffff, 0.125 ]];
+      // 	var geometry = createGeometry();
+      // 	for ( i = 0; i < parameters.length; ++ i ) {
+      // 		p = parameters[ i ];
+      // 		material = new THREE.LineBasicMaterial( { color: p[ 1 ], opacity: p[ 2 ] } );
+      // 		line = new THREE.LineSegments( geometry, material );
+      // 		line.scale.x = line.scale.y = line.scale.z = p[ 0 ];
+      // 		line.userData.originalScale = p[ 0 ];
+      // 		line.rotation.y = Math.random() * Math.PI;
+      // 		line.updateMatrix();
+      // 		scene.add( line );
+      // 	}
+
+      function createGeometry() {
+        var geometry = new THREE.BufferGeometry();
+        var vertices = [];
+        var vertex = new THREE.Vector3();
+        for (var i = 0; i < 1500; i++) {
+          vertex.x = Math.random() * 2 - 1;
+          vertex.y = Math.random() * 2 - 1;
+          vertex.z = Math.random() * 2 - 1;
+          vertex.normalize();
+          vertex.multiplyScalar(r);
+          vertices.push(vertex.x, vertex.y, vertex.z);
+          vertex.multiplyScalar(Math.random() * 0.09 + 1);
+          vertices.push(vertex.x, vertex.y, vertex.z);
+        }
+        geometry.addAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(vertices, 3)
+        );
+        return geometry;
+      }
+
       // stars
       var starsGeometry = new THREE.Geometry();
 
@@ -112,7 +225,7 @@
         starsGeometry.vertices.push(star);
       }
 
-      var starsMaterial = new THREE.PointsMaterial({ color: 'lightblue' });
+      var starsMaterial = new THREE.PointsMaterial({ color: "lightblue" });
 
       var starField = new THREE.Points(starsGeometry, starsMaterial);
 
@@ -121,12 +234,9 @@
       // animate
       var animate = function() {
         requestAnimationFrame(animate);
-
+        time = Date.now() * 0.0005;
         moon.rotation.y += 0.05;
-    
-
         starField.position.y -= 0.1;
-
         renderer.render(scene, camera);
       };
 
@@ -136,7 +246,7 @@
 
       // direction light
       var directionalLight = new THREE.DirectionalLight(0xffeedd);
-      directionalLight.position.set(0, 1, 1).normalize();
+      directionalLight.position.set(0, 150, 1).normalize();
       scene.add(directionalLight);
 
       //point light
@@ -144,26 +254,57 @@
       scene.add(pointLight);
 
       //Load cottage
-      const mtlLoader = new THREE.MTLLoader();
+      // const mtlLoader = new THREE.MTLLoader();
 
-      mtlLoader.load("cottage.mtl", function(materials) {
+      new THREE.MTLLoader().load("cottage.mtl", function(materials) {
         materials.preload();
-
-        var objLoader = new THREE.OBJLoader();
-        objLoader.setMaterials(materials);
-
-        objLoader.load("cottage_blender.obj", function(object) {
-          cube = object;
-          cube.position.y = -50;
-          scene.add(cube);
-        });
+        new THREE.OBJLoader()
+          .setMaterials(materials)
+          .load("cottage_blender.obj", function(object) {
+            cube = object;
+            cube.position.y = -50;
+            scene.add(object);
+          });
       });
+
+      // mtlLoader.load("cottage.mtl", function(materials) {
+      //   materials.preload();
+
+      //   var objLoader = new THREE.OBJLoader();
+      //   objLoader.setMaterials(materials);
+
+      //   objLoader.load("cottage_blender.obj", function(object) {
+      //     cube = object;
+      //     cube.position.y = -50;
+      //     scene.add(cube);
+      //   });
+      // });
+      document.onkeydown = handleKeyDown;
+      function handleKeyDown(keyEvent) {
+        //   if(jumping) return;
+        var validMove = true;
+        //left arrow
+        if (keyEvent.keyCode === 37) {
+          camera.position.x += 5;
+        } else if (keyEvent.keyCode === 39) {
+          camera.position.z += 5;
+        }
+        else if (keyEvent.keyCode === 65) {
+          car.position.z += 50;
+        }
+      }
 
       //Hoisted Functions
       function render() {
-        camera.position.x += (mouseX - camera.position.x) * 0.05;
-        camera.position.y += (-mouseY - camera.position.y) * 0.05;
+        // camera.position.x += (mouseX - camera.position.x) * 0.05;
+        // camera.position.y += (-mouseY - camera.position.y) * 0.05;
         camera.lookAt(scene.position);
+
+        light1.position.x = Math.sin(time * 0.7) * 30;
+        light2.position.x = Math.cos(time * 0.3) * 30;
+        light3.position.x = Math.sin(time * 0.7) * 30;
+
+        light4.position.x = Math.sin(time * 0.3) * 30;
 
         requestAnimationFrame(render);
         renderer.render(scene, camera);
